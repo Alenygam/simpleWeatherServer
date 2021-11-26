@@ -1,0 +1,21 @@
+{
+  "dependencies": {
+    "dayjs": "^1.10.7",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "fuse.js": "^6.4.6",
+    "node-fetch": "^3.1.0"
+  },
+  "name": "meteo-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node -r dotenv/config ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "type": "module",
+  "module": "CommonJS"
+}
