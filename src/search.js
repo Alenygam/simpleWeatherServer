@@ -8,7 +8,7 @@ const fuse = new Fuse(cities, { keys: ['name', 'country', 'id'] })
 
 router.get('/:q', (req, res) => {
   if (!req.params.q) return res.status(400).json({ message: "specifica una stringa di ricerca" });
-  const result = fuse.search(req.params.q).splice(0, 10);
+  const result = fuse.search(decodeURIComponent(req.params.q)).splice(0, 10);
   res.json(result);
 })
 
