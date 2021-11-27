@@ -1,29 +1,16 @@
 import fetch from 'node-fetch';
-import Fuse from 'fuse.js';
 import express from 'express';
-import fs from 'fs';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
+import search from './search.js';
 
-const cities = JSON.parse(fs.readFileSync('./city.list.json', {encoding: 'UTF-8'}));
 dayjs.extend(utc);
 
 var app = express();
 
-const fuse = new Fuse(cities, {keys: ['name', 'country', 'id']})
 const appId = process.env.appIdOpenWeatherMap;
 
-
-/*
- * THIS IS HORRENDOUS SPAGHETTI CODE
- * I CAN CODE BETTER THAN THIS I SWEAR
- */
-
-app.get('/search/:q', (req, res) => {
-  if (!req.params.q) return res.status(400).json({message: "specifica una stringa di ricerca"});
-  const result = fuse.search(req.params.q).splice(0, 10);
-  res.json(result);
-})
+app.use('/search', search);
 
 app.get('/weather/:cityID', async (req, res) => {
   if (!req.params.cityID) return res.status(400).json({message: "specifica una città"});
