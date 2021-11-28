@@ -8,7 +8,36 @@ dayjs.extend(utc);
 const router = express.Router();
 const appId = process.env.appIdOpenWeatherMap;
 
-router.get('/:cityID', getDataFromApi, elaborateData)
+router.get('/:cityID', getDataFromApi, elaborateData);
+router.get('/geo/:lat/:lon', getDataFromApiGeo, elaborateData);
+
+async function getDataFromApiGeo(req, res, next) {
+  if (!req.params.lat) return res.status(400).json({ message: "specifica una latitudine" });
+  if (!req.params.lon) return res.status(400).json({ message: "specifica una longitudine" });
+  const lat = encodeURIComponent(req.params.lat);
+  const lon = encodeURIComponent(req.params.lon);
+
+  const currentRes = await fetch(
+    `https://api.openweathermap.org/data/2.5/weather?appid=${appId}&lang=it&units=metric&lat=${lat}&lon=${lon}`
+  )
+  if (!currentRes.ok) {
+    const json = await currentRes.json();
+    return res.status(400).json({ message: json.message });
+  }
+
+  const forecastRes = await fetch(
+    `https://api.openweathermap.org/data/2.5/forecast?appid=${appId}&lang=it&units=metric&lat=${lat}&lon=${lon}`
+  )
+  if (!forecastRes.ok) {
+    const json = await forecastRes.json();
+    return res.status(400).json({ message: json.message });
+  }
+
+  req.currentFromApi = await currentRes.json();
+  req.forecastFromApi = await forecastRes.json();
+
+  next();
+}
 
 async function getDataFromApi(req, res, next) {
   if (!req.params.cityID) return res.status(400).json({ message: "specifica una città" });
