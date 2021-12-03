@@ -24,19 +24,22 @@ async function getDataFromApiGeo(req, res, next) {
   const lon = encodeURIComponent(req.params.lon);
   const unit = encodeURIComponent(req.params.unit);
 
-  const currentRes = await fetch(
+  const currentRes = fetch(
     `https://api.openweathermap.org/data/2.5/weather?appid=${appId}&lang=it&units=${unit}&lat=${lat}&lon=${lon}`
   )
-  if (!currentRes.ok) {
-    const json = await currentRes.json();
-    return res.status(400).json({ message: json.message });
-  }
-
-  const forecastRes = await fetch(
+  const forecastRes = fetch(
     `https://api.openweathermap.org/data/2.5/forecast?appid=${appId}&lang=it&units=metric&lat=${lat}&lon=${lon}`
   )
+
+  currentRes = await currentRes;
+  forecastRes = await forecastRes;
+
   if (!forecastRes.ok) {
     const json = await forecastRes.json();
+    return res.status(400).json({ message: json.message });
+  }
+  if (!currentRes.ok) {
+    const json = await currentRes.json();
     return res.status(400).json({ message: json.message });
   }
 
@@ -52,19 +55,24 @@ async function getDataFromApi(req, res, next) {
   const cityId = encodeURIComponent(req.params.cityID);
   const unit = encodeURIComponent(req.params.unit);
 
-  const currentRes = await fetch(
+  var currentRes = fetch(
     `https://api.openweathermap.org/data/2.5/weather?appid=${appId}&lang=it&units=${unit}&id=${cityId}`
   )
-  if (!currentRes.ok) {
-    const json = await currentRes.json();
+
+  var forecastRes = fetch(
+    `https://api.openweathermap.org/data/2.5/forecast?appid=${appId}&lang=it&units=metric&id=${cityId}`
+  )
+
+  currentRes = await currentRes;
+  forecastRes = await forecastRes;
+
+  if (!forecastRes.ok) {
+    const json = await forecastRes.json();
     return res.status(400).json({ message: json.message });
   }
 
-  const forecastRes = await fetch(
-    `https://api.openweathermap.org/data/2.5/forecast?appid=${appId}&lang=it&units=metric&id=${cityId}`
-  )
-  if (!forecastRes.ok) {
-    const json = await forecastRes.json();
+  if (!currentRes.ok) {
+    const json = await currentRes.json();
     return res.status(400).json({ message: json.message });
   }
 
