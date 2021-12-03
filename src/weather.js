@@ -24,10 +24,10 @@ async function getDataFromApiGeo(req, res, next) {
   const lon = encodeURIComponent(req.params.lon);
   const unit = encodeURIComponent(req.params.unit);
 
-  const currentRes = fetch(
+  var currentRes = fetch(
     `https://api.openweathermap.org/data/2.5/weather?appid=${appId}&lang=it&units=${unit}&lat=${lat}&lon=${lon}`
   )
-  const forecastRes = fetch(
+  var forecastRes = fetch(
     `https://api.openweathermap.org/data/2.5/forecast?appid=${appId}&lang=it&units=metric&lat=${lat}&lon=${lon}`
   )
 
