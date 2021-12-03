@@ -8,17 +8,24 @@ dayjs.extend(utc);
 const router = express.Router();
 const appId = process.env.appIdOpenWeatherMap;
 
-router.get('/:cityID', getDataFromApi, elaborateData);
-router.get('/geo/:lat/:lon', getDataFromApiGeo, elaborateData);
+const acceptableUnitTypes = [
+  "metric",
+  "imperial"
+]
+
+router.get('/:cityID/:unit', getDataFromApi, elaborateData);
+router.get('/geo/:lat/:lon/:unit', getDataFromApiGeo, elaborateData);
 
 async function getDataFromApiGeo(req, res, next) {
   if (!req.params.lat) return res.status(400).json({ message: "specifica una latitudine" });
   if (!req.params.lon) return res.status(400).json({ message: "specifica una longitudine" });
+  if (!acceptableUnitTypes.includes(req.params.unit)) return res.status(400).json({message: "Imposta un tipo di unità valido"});
   const lat = encodeURIComponent(req.params.lat);
   const lon = encodeURIComponent(req.params.lon);
+  const unit = encodeURIComponent(req.params.unit);
 
   const currentRes = await fetch(
-    `https://api.openweathermap.org/data/2.5/weather?appid=${appId}&lang=it&units=metric&lat=${lat}&lon=${lon}`
+    `https://api.openweathermap.org/data/2.5/weather?appid=${appId}&lang=it&units=${unit}&lat=${lat}&lon=${lon}`
   )
   if (!currentRes.ok) {
     const json = await currentRes.json();
@@ -41,10 +48,12 @@ async function getDataFromApiGeo(req, res, next) {
 
 async function getDataFromApi(req, res, next) {
   if (!req.params.cityID) return res.status(400).json({ message: "specifica una città" });
+  if (!acceptableUnitTypes.includes(req.params.unit)) return res.status(400).json({ message: "Imposta un tipo di unità valido" });
   const cityId = encodeURIComponent(req.params.cityID);
+  const unit = encodeURIComponent(req.params.unit);
 
   const currentRes = await fetch(
-    `https://api.openweathermap.org/data/2.5/weather?appid=${appId}&lang=it&units=metric&id=${cityId}`
+    `https://api.openweathermap.org/data/2.5/weather?appid=${appId}&lang=it&units=${unit}&id=${cityId}`
   )
   if (!currentRes.ok) {
     const json = await currentRes.json();
