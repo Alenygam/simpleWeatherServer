@@ -11,7 +11,7 @@ function search(req, res) {
   if (!req.params.lang) req.params.lang = "it";
   var geo;
   try {
-    geo = new Geode('alenygam', { language: req.params.lang });
+    geo = new Geode(process.env.geodeUsername, { language: req.params.lang });
   } catch (err) {
     console.error(err);
     return res.status(400).json({message: err.message});
