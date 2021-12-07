@@ -138,14 +138,12 @@ function elaborateHourlyData(forecastFromApi, timeZone) {
 }
 
 function elaborateDailyData(forecastFromApi, timeZone) {
-  const daily = [];
+  const daily = {};
 
-  let scannedForecasts = [];
   const currentDayDate = dayjs()
         .utc(new Date())
         .utcOffset(timeZone)
         .format('DD/MM/YYYY');
-  var prevDayDate;
 
   for (let forecast of forecastFromApi.list) {
     const dayOfForecast = dayjs
@@ -154,95 +152,25 @@ function elaborateDailyData(forecastFromApi, timeZone) {
       .format('DD/MM/YYYY');
     if (dayOfForecast === currentDayDate) continue;
 
-    // The second condition is to account for the first few passes
-    // of this function where the forecast is of the same day as
-    // the current one.
-    if (dayOfForecast !== prevDayDate && scannedForecasts.length > 0) {
-      const [
-        highestTemperature,
-        lowestTemperature
-      ] = getHighestAndMinimumTemperature(scannedForecasts);
+    const timeOfForecast = dayjs
+      .utc(new Date(forecast.dt * 1000))
+      .utcOffset(timeZone)
+      .format('HH:mm');
 
-      const weather = getPrioritisedWeather(scannedForecasts);
-      // Replace eventual night icon with day icon.
-      weather.icon = weather.icon.replace(/n/g, 'd');
-
-      daily.push({
-        date: prevDayDate,
-        hightemp: highestTemperature,
-        lowtemp: lowestTemperature,
-        ...weather
-      })
-
-      scannedForecasts = [];
+    if (!daily[dayOfForecast]) {
+      daily[dayOfForecast] = [];
     }
-
-    prevDayDate = dayOfForecast;
-    scannedForecasts.push({
-      temp: forecast.main.temp,
-      weather: forecast.weather[0]
+    daily[dayOfForecast].push({
+      time: timeOfForecast,
+      temp: Math.round(forecast.main.temp),
+      id: forecast.weather[0].id,
+      main: forecast.weather[0].main,
+      description: forecast.weather[0].description,
+      icon: forecast.weather[0].icon
     })
   }
 
   return daily;
-}
-
-function getHighestAndMinimumTemperature(scannedForecasts) {
-  let high = 0;
-  let low = Infinity;
-
-  for (let forecast of scannedForecasts) {
-    if (forecast.temp < low) {
-      low = forecast.temp;
-    }
-    if (forecast.temp > high) {
-      high = forecast.temp;
-    }
-  }
-
-  return [Math.round(high), Math.round(low)];
-}
-
-function getPrioritisedWeather(scannedForecasts) {
-  scannedForecasts.map((forecast) => {
-    const weather = forecast.weather;
-    let priorityLevel;
-    // https://openweathermap.org/weather-conditions
-    // This is how I chose to prioritize different weather conditions
-    if (weather.id === 800) {
-      priorityLevel = 0;
-    } else if (weather.id === 801) {
-      priorityLevel = 1.1;
-    } else if (weather.id === 802) {
-      priorityLevel = 1.2;
-    } else if (weather.id === 803) {
-      priorityLevel = 1.3;
-    } else if (weather.id === 804) {
-      priorityLevel = 1.4;
-    } else if (700 <= weather.id && weather.id < 782) {
-      priorityLevel = 2;
-    } else if (300 <= weather.id && weather.id < 322) {
-      priorityLevel = 3;
-    } else if (500 <= weather.id && weather.id < 532) {
-      priorityLevel = 4;
-    } else if (200 <= weather.id && weather.id < 233) {
-      priorityLevel = 5
-    } else if (600 <= weather.id && weather.id < 623) {
-      priorityLevel = 6;
-    }
-
-    weather.priority = priorityLevel;
-    return {
-      temp: forecast.temp,
-      weather: weather
-    }
-  });
-
-  const highestPriority = scannedForecasts.reduce(
-    (a, b) => b.weather.priority > a.weather.priority ? b : a
-  );
-
-  return highestPriority.weather;
 }
 
 export default router;
